@@ -1,174 +1,186 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Controle de Estoque</title>
+  <meta charset="UTF-8">
+  <title>Controle de Estoque</title>
 
-<style>
-body {
-  font-family: Arial;
-  background: linear-gradient(to right, #4facfe, #00f2fe);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
+  <style>
+    body {
+      font-family: Arial;
+      background: linear-gradient(to right, #74ebd5, #4facfe);
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
 
-.box {
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  width: 300px;
-  text-align: center;
-}
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
 
-input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-}
+    h1 {
+      text-align: center;
+    }
 
-button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-}
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
 
-.app {
-  display: none;
-}
-</style>
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #1e73ff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #eee;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .acoes button {
+      margin-left: 5px;
+      padding: 5px;
+      border-radius: 5px;
+      width: auto;
+    }
+
+    .editar {
+      background: green;
+      color: white;
+    }
+
+    .remover {
+      background: red;
+      color: white;
+    }
+  </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div class="box" id="login">
-  <h2>🔐 Login</h2>
-  <input type="text" id="usuario" placeholder="Usuário">
-  <input type="password" id="senha" placeholder="Senha">
-  <button onclick="entrar()">Entrar</button>
-  <button onclick="mostrarCadastro()">Criar conta</button>
-</div>
+<div class="container">
+  <h1>📦 Controle de Estoque</h1>
 
-<!-- CADASTRO -->
-<div class="box" id="cadastro" style="display:none;">
-  <h2>📝 Cadastro</h2>
-  <input type="text" id="novoUsuario" placeholder="Usuário">
-  <input type="password" id="novaSenha" placeholder="Senha">
-  <button onclick="cadastrar()">Cadastrar</button>
-  <button onclick="voltarLogin()">Voltar</button>
-</div>
-
-<!-- APP -->
-<div class="box app" id="app">
-  <h2>📦 Estoque</h2>
-
-  <p id="userLogado"></p>
-
-  <input type="text" id="nome" placeholder="Produto">
+  <input type="text" id="nome" placeholder="Nome do produto">
   <input type="number" id="quantidade" placeholder="Quantidade">
 
-  <button onclick="adicionar()">Adicionar</button>
-  <button onclick="sair()">Sair</button>
+  <button id="btnAdicionar">Adicionar</button>
+
+  <input type="text" id="busca" placeholder="🔍 Buscar..." onkeyup="buscar()">
+
+  <h3>📊 Relatório</h3>
+  <p>Total de produtos: <span id="totalProdutos">0</span></p>
+  <p>Quantidade total: <span id="totalQuantidade">0</span></p>
 
   <ul id="lista"></ul>
 </div>
 
 <script>
-let usuarioAtual = localStorage.getItem("usuarioAtual");
-let produtos = JSON.parse(localStorage.getItem("produtos_" + usuarioAtual)) || [];
-let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+let produtos = []; // 🔥 SEM localStorage (funciona no app)
 
-function mostrarCadastro() {
-  login.style.display = "none";
-  cadastro.style.display = "block";
-}
+function adicionar() {
+  let nome = document.getElementById("nome").value.trim();
+  let quantidade = document.getElementById("quantidade").value;
 
-function voltarLogin() {
-  cadastro.style.display = "none";
-  login.style.display = "block";
-}
-
-function cadastrar() {
-  let user = document.getElementById("novoUsuario").value;
-  let pass = document.getElementById("novaSenha").value;
-
-  if (!user || !pass) {
+  if (nome === "" || quantidade === "") {
     alert("Preencha tudo!");
     return;
   }
 
-  if (usuarios.find(u => u.user === user)) {
-    alert("Usuário já existe!");
+  if (quantidade <= 0) {
+    alert("Quantidade inválida!");
     return;
   }
 
-  usuarios.push({ user, pass });
-  localStorage.setItem("usuarios", JSON.stringify(usuarios));
-
-  alert("Conta criada!");
-  voltarLogin();
-}
-
-function entrar() {
-  let user = document.getElementById("usuario").value;
-  let pass = document.getElementById("senha").value;
-
-  let encontrado = usuarios.find(u => u.user === user && u.pass === pass);
-
-  if (encontrado) {
-    localStorage.setItem("usuarioAtual", user);
-    location.reload();
-  } else {
-    alert("Login inválido!");
-  }
-}
-
-function sair() {
-  localStorage.removeItem("usuarioAtual");
-  location.reload();
-}
-
-function mostrarApp() {
-  document.getElementById("login").style.display = "none";
-  document.getElementById("app").style.display = "block";
-
-  document.getElementById("userLogado").innerText = "👤 " + usuarioAtual;
+  produtos.push({
+    nome: nome,
+    quantidade: Number(quantidade)
+  });
 
   mostrar();
+  atualizarRelatorio();
+
+  document.getElementById("nome").value = "";
+  document.getElementById("quantidade").value = "";
 }
 
-function adicionar() {
-  let nome = document.getElementById("nome").value;
-  let quantidade = document.getElementById("quantidade").value;
-
-  if (!nome || !quantidade) return;
-
-  produtos.push({ nome, quantidade });
-
-  localStorage.setItem("produtos_" + usuarioAtual, JSON.stringify(produtos));
-
-  mostrar();
-}
-
-function mostrar() {
+function mostrar(filtro = "") {
   let lista = document.getElementById("lista");
   lista.innerHTML = "";
 
-  produtos.forEach((p, i) => {
-    lista.innerHTML += `<li>${p.nome} - ${p.quantidade}</li>`;
-  });
+  produtos
+    .filter(p => p.nome.toLowerCase().includes(filtro.toLowerCase()))
+    .forEach((p, i) => {
+      lista.innerHTML += `
+        <li>
+          ${p.nome} - ${p.quantidade}
+          <div class="acoes">
+            <button class="editar" onclick="editar(${i})">Editar</button>
+            <button class="remover" onclick="remover(${i})">X</button>
+          </div>
+        </li>
+      `;
+    });
 }
 
-// 🔥 AUTO LOGIN
-if (usuarioAtual) {
-  mostrarApp();
+function remover(index) {
+  produtos.splice(index, 1);
+  mostrar();
+  atualizarRelatorio();
 }
+
+function editar(index) {
+  let novoNome = prompt("Novo nome:", produtos[index].nome);
+  let novaQuantidade = prompt("Nova quantidade:", produtos[index].quantidade);
+
+  if (!novoNome || !novaQuantidade) return;
+
+  produtos[index].nome = novoNome;
+  produtos[index].quantidade = Number(novaQuantidade);
+
+  mostrar();
+  atualizarRelatorio();
+}
+
+function buscar() {
+  let termo = document.getElementById("busca").value;
+  mostrar(termo);
+}
+
+function atualizarRelatorio() {
+  document.getElementById("totalProdutos").innerText = produtos.length;
+
+  let total = produtos.reduce((soma, p) => soma + p.quantidade, 0);
+  document.getElementById("totalQuantidade").innerText = total;
+}
+
+// 🔥 ESSA LINHA RESOLVE O PROBLEMA DO BOTÃO NO APP
+document.getElementById("btnAdicionar").addEventListener("click", adicionar);
+
 </script>
 
 </body>
